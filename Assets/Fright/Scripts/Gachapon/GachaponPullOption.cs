@@ -32,6 +32,8 @@ namespace Fright.Gachapon
 		public TPayload payload;
 		/// The random weight of pulling this option relative to other options
 		public float weight;
+		/// The cost to pull this option, is taken out of the pull session's budget
+		public float cost;
 		/// An optional classification for applying custom rules
 		public int category;
 		/// An optional classification for applying custom rules
