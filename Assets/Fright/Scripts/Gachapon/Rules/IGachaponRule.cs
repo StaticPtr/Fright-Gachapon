@@ -25,9 +25,9 @@ using System.Collections.Generic;
 
 namespace Fright.Gachapon
 {
-	/// Pull option rules can modify any aspect of a pull option, such as it's weight, payload, or classifications
-	public interface IPullOptionRule<TPayload> : IGachaponRule<TPayload>
+	/// An empty interface that specifies that this is an object that can apply modifications to a gachapon session
+	public interface IGachaponRule<TPayload>
 	{
-		void ModifyPullOption(GachaponPullSession<TPayload> session, ref GachaponPullOption<TPayload> pullOption);
+		//...
 	}
 }

@@ -26,13 +26,13 @@ using System.Collections.Generic;
 namespace Fright.Gachapon
 {
 	/// Session rules can modify any aspect of a gachapon session, but usually modifies the results
-	public interface ISessionRule<TPayload>
+	public interface ISessionRule<TPayload> : IGachaponRule<TPayload>
 	{
 		/// Invoked after the session is created but before any pulls are performed
-		void OnSessionCreated(GachaponSession<TPayload> session);
+		void OnSessionCreated(GachaponPullSession<TPayload> session);
 		/// Invoked after a pull is performed
-		void OnPullCompleted(GachaponSession<TPayload> session);
+		void OnPullCompleted(GachaponPullSession<TPayload> session);
 		/// Invoked after all the pulls are completed, but before the results are returned
-		void OnSessionClosing(GachaponSession<TPayload> session);
+		void OnSessionClosing(GachaponPullSession<TPayload> session);
 	}
 }

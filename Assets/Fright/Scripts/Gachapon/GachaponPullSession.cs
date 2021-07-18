@@ -27,7 +27,7 @@ namespace Fright.Gachapon
 {
 	/// Defines a session used to pull one or more times from the gachapon puller.
 	/// A session lives for the lifetime of the pull request, and can be used by the gachapon rules.
-	public class GachaponSession<TPayload>
+	public class GachaponPullSession<TPayload>
 	{
 		/// The object performing the pulling operation
 		public GachaponPuller<TPayload> puller;

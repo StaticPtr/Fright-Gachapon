@@ -26,8 +26,8 @@ using System.Collections.Generic;
 namespace Fright.Gachapon
 {
 	/// Pool rules can be used to change the weights of pulling from any given pool
-	public interface IPoolRule<TPayload>
+	public interface IPoolRule<TPayload> : IGachaponRule<TPayload>
 	{
-		void ModifyPoolWeight(GachaponSession<TPayload> session, GachaponPool<TPayload> pool, ref float weight);
+		void ModifyPoolWeight(GachaponPullSession<TPayload> session, GachaponPool<TPayload> pool, ref float weight);
 	}
 }

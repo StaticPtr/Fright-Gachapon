@@ -25,6 +25,7 @@ using System.Collections.Generic;
 
 namespace Fright.Gachapon
 {
+	/// Performs essential operations required to pull from a gachapon
 	public class GachaponPuller<TPayload>
 	{
 		//...

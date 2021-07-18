@@ -25,9 +25,14 @@ using System.Collections.Generic;
 
 namespace Fright.Gachapon
 {
-	/// Pull option rules can modify any aspect of a pull option, such as it's weight, payload, or classifications
-	public interface IPullOptionRule<TPayload> : IGachaponRule<TPayload>
+	/// An optional object that can be referenced by ID to easily create a new gachapon session
+	public class GachaponInitModel<TPayload>
 	{
-		void ModifyPullOption(GachaponPullSession<TPayload> session, ref GachaponPullOption<TPayload> pullOption);
+		/// A unique identifier used to reference this object
+		public string id;
+		/// One or more pools to use for the pull session, and the relative weights used to indicate which pool to use
+		public List<(string gachaponPoolID, float weight)> pools = new List<(string gachaponPoolID, float weight)>();
+		/// Any rules to add to the pull session, on top of the default rules
+		public List<IGachaponRule<TPayload>> rules = new List<IGachaponRule<TPayload>>();
 	}
 }
