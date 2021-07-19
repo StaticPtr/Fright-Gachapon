@@ -57,7 +57,7 @@ namespace Fright.Gachapon
 			IEnumerable<GachaponPullSession<TPayload>.PoolEntry> pools,
 			params IGachaponRule<TPayload>[] extraRules)
 		{
-			using var session = CreatePullSession(budget, pools, extraRules);
+			var session = CreatePullSession(budget, pools, extraRules);
 
 			//Do the actual pulling here
 			PullUntilDone(session);
@@ -100,9 +100,14 @@ namespace Fright.Gachapon
 				}
 			}
 
-			//If successful, notify the session rules that a pull was completed
+			//Check if successful
 			if (!pulledResult.Equals(default))
 			{
+				//Update the session
+				session.budgetRemaining -= pulledResult.cost;
+				session.results.Add(pulledResult);
+				
+				//Notify the session rules that a pull was completed
 				foreach(var sessionRule in session.sessionRules)
 					sessionRule.OnPullCompleted(session);
 			}

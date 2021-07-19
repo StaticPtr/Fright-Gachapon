@@ -38,5 +38,15 @@ namespace Fright.Gachapon
 		public int category;
 		/// An optional classification for applying custom rules
 		public int rarity;
+
+		/// Convenience constuctor
+		public GachaponPullOption(TPayload payload, float weight, float cost = 1.0f, int category = -1, int rarity = -1)
+		{
+			this.payload = payload;
+			this.weight = weight;
+			this.cost = cost;
+			this.category = category;
+			this.rarity = rarity;
+		}
 	}
 }
