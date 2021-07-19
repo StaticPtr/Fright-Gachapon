@@ -59,6 +59,51 @@ namespace Fright.Gachapon
 			}
 		}
 
+		/// Returns the session's pool entries after accounting for any modification from rules
+		public IEnumerable<PoolEntry> GetModifiedPoolEntries()
+		{
+			foreach(var poolEntry in pools)
+			{
+				var pool = poolEntry.pool;
+				float randomWeight = poolEntry.weight;
+
+				//Let each rule have a chance to modify the weight
+				foreach(var poolRule in poolRules)
+				{
+					poolRule.ModifyPoolWeight(this, pool, ref randomWeight);
+				}
+
+				//Return the pool if its weight isn't zero or negative
+				if (randomWeight > 0.0f)
+				{
+					yield return new PoolEntry()
+					{
+						pool = pool,
+						weight = randomWeight,
+					};
+				}
+			}
+		}
+
+		/// Returns the pull options from the provided pool after accounting for any modifications from the rules
+		public IEnumerable<GachaponPullOption<TPayload>> GetModifiedPullOptions(GachaponPool<TPayload> pool)
+		{
+			for(int i = 0; i < pool.pullOptions.Length; ++i)
+			{
+				var modifiedOption = pool.pullOptions[i];
+
+				//Let each rule have a chance to modify the option
+				foreach(var pullRule in pullOptionRules)
+					pullRule.ModifyPullOption(this, ref modifiedOption);
+
+				//Return the option if its weight isn't zero or negative
+				if (modifiedOption.weight > 0.0f)
+				{
+					yield return modifiedOption;
+				}
+			}
+		}
+
 		/// Cleans up any references or resources used by the pull session
 		public virtual void Dispose()
 		{

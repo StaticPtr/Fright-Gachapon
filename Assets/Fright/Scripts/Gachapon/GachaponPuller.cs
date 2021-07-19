@@ -39,7 +39,7 @@ namespace Fright.Gachapon
 		{
 			if (initModels.TryGetValue(initModelID, out GachaponInitModel<TPayload> model))
 			{
-				foreach(var result in Pull(budget, GetPoolEntries(model), extraRules))
+				foreach(var result in Pull(budget, GetPoolEntriesFromInitModel(model), extraRules))
 				{
 					yield return result;
 				}
@@ -84,10 +84,78 @@ namespace Fright.Gachapon
 		/// Performs a single pull, return true if it was successful
 		protected internal virtual bool PullOnce(GachaponPullSession<TPayload> session)
 		{
-			throw new NotImplementedException();
+			GachaponPullOption<TPayload> pulledResult = default;
+
+			//Pick one of the pools
+			(var poolEntry, bool didPickPool) = PickRandom(session.GetModifiedPoolEntries(), entry => entry.weight);
+
+			if (didPickPool && poolEntry.pool != null)
+			{
+				//Pick one of the options
+				(var option, bool didPickOption) = PickRandom(session.GetModifiedPullOptions(poolEntry.pool), option => option.weight);
+
+				if (didPickOption)
+				{
+					pulledResult = option;
+				}
+			}
+
+			//If successful, notify the session rules that a pull was completed
+			if (!pulledResult.Equals(default))
+			{
+				foreach(var sessionRule in session.sessionRules)
+					sessionRule.OnPullCompleted(session);
+			}
+
+			//Return the result
+			return !pulledResult.Equals(default);
 		}
 
-		protected internal virtual IEnumerable<GachaponPullSession<TPayload>.PoolEntry> GetPoolEntries(GachaponInitModel<TPayload> initModel)
+		/// Given an enumerable list of weighted object, picks and returns one of those objects
+		protected internal virtual (T result, bool wasSuccessful) PickRandom<T>(IEnumerable<T> options, Func<T, float> getWeightFunction)
+		{
+			float sumWeight = 0.0f;
+
+			//Sum all the weights together
+			foreach(var option in options)
+			{
+				float weight = getWeightFunction(option);
+
+				if (weight > 0.0f)
+				{
+					sumWeight += weight;
+				}
+			}
+
+			//Check if there were any options to pick
+			if (sumWeight <= 0.0f)
+			{
+				return (default, false);
+			}
+			
+			//Randomly pick an item
+			float rand = UnityEngine.Random.Range(0.0f, sumWeight);
+			
+			//Find the randomly picked item and return it
+			foreach(var option in options)
+			{
+				float weight = getWeightFunction(option);
+
+				if (weight > 0.0f)
+				{
+					rand -= weight;
+
+					if (rand <= 0.0f)
+					{
+						return (option, true);
+					}
+				}
+			}
+			
+			throw new Exception("Function ended without returning a result. getWeightFunction should return the same value for the same option");
+		}
+
+		protected internal virtual IEnumerable<GachaponPullSession<TPayload>.PoolEntry> GetPoolEntriesFromInitModel(GachaponInitModel<TPayload> initModel)
 		{
 			foreach(var tuple in initModel.pools)
 			{
