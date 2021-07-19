@@ -23,6 +23,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Fright.Gachapon
 {
@@ -30,10 +31,27 @@ namespace Fright.Gachapon
 	public class GachaponPuller<TPayload>
 	{
 		public Dictionary<string, GachaponInitModel<TPayload>> initModels = new Dictionary<string, GachaponInitModel<TPayload>>();
+		public Dictionary<string, GachaponPool<TPayload>> pools = new Dictionary<string, GachaponPool<TPayload>>();
 		public List<IGachaponRule<TPayload>> defaultGachaponRules = new List<IGachaponRule<TPayload>>();
 
-		public virtual IEnumerable<TPayload> Pull(string initModelID, float budget, params IGachaponRule<TPayload>[] extraRules) => throw new NotImplementedException();
+		/// Pulls as many items from the gachapon session with the given initialize model
+		public virtual IEnumerable<TPayload> Pull(string initModelID, float budget, params IGachaponRule<TPayload>[] extraRules)
+		{
+			if (initModels.TryGetValue(initModelID, out GachaponInitModel<TPayload> model))
+			{
+				foreach(var result in Pull(budget, GetPoolEntries(model), extraRules))
+				{
+					yield return result;
+				}
+			}
+			else
+			{
+				Debug.LogError($"[GachaponPuller] Unknown gachapon init model \"{initModelID}\"");
+				yield break;
+			}
+		}
 
+		/// Pulls as many items as possible with the give budget, pools, and rules
 		public virtual IEnumerable<TPayload> Pull(
 			float budget,
 			IEnumerable<GachaponPullSession<TPayload>.PoolEntry> pools,
@@ -42,7 +60,7 @@ namespace Fright.Gachapon
 			using var session = CreatePullSession(budget, pools, extraRules);
 
 			//Do the actual pulling here
-			throw new NotImplementedException();
+			PullUntilDone(session);
 
 			//Notify the session rules that the session is about to close
 			foreach(var sessionRule in session.sessionRules)
@@ -50,6 +68,42 @@ namespace Fright.Gachapon
 
 			//Return the result
 			return session.GetPayloadResults();
+		}
+
+		/// Pulls until there is no budget left, or there are no longer any options
+		protected internal virtual void PullUntilDone(GachaponPullSession<TPayload> session)
+		{
+			bool isStillPulling = true;
+
+			while (isStillPulling && session.budgetRemaining > 0.0f)
+			{
+				isStillPulling = PullOnce(session);
+			}
+		}
+
+		/// Performs a single pull, return true if it was successful
+		protected internal virtual bool PullOnce(GachaponPullSession<TPayload> session)
+		{
+			throw new NotImplementedException();
+		}
+
+		protected internal virtual IEnumerable<GachaponPullSession<TPayload>.PoolEntry> GetPoolEntries(GachaponInitModel<TPayload> initModel)
+		{
+			foreach(var tuple in initModel.pools)
+			{
+				if (pools.TryGetValue(tuple.gachaponPoolID, out GachaponPool<TPayload> pool))
+				{
+					yield return new GachaponPullSession<TPayload>.PoolEntry()
+					{
+						pool = pool,
+						weight = tuple.weight,
+					};
+				}
+				else
+				{
+					Debug.LogError($"[GachaponPuller] Unknown pool \"{tuple.gachaponPoolID}\"");
+				}
+			}
 		}
 
 		protected internal virtual GachaponPullSession<TPayload> CreatePullSession(
